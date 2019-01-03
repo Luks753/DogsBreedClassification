@@ -25,19 +25,12 @@ if(i<1):
         outF = open("myOutFile.txt", "w")
         img = cv2.imread(image_path).astype('uint8')
         I = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        #print(I)
         height, width = I.shape
         I = np.reshape(I,height*width)
         #print(np.prod(I.shape))        
         #I = np.append(I, i)
-        for i in range(np.size(I)):
-            # write line to output file
-            outF.write('@attribute \"pixel'+str(i)+'\" integer')
-            outF.write("\n")
-        print(I)
         i = i+5
         outF.close()
-        #png.append()
         '''png.append(I)
         if(count%100 == 0):
             print(os.path.dirname(image_path))
