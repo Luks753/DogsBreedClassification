@@ -62,7 +62,47 @@ plt.title("Ground Truth : {}".format(teste))
 plt.show()
 #'''
 
+# Change the labels from integer to categorical data
+train_labels_one_hot = to_categorical(data_train_labels)
+test_labels_one_hot = to_categorical(data_test_labels)
 
+# Display the change for category label using one-hot encoding
+print('Original label 0 : ', data_train_labels[0])
+print('After conversion to categorical ( one-hot ) : ', train_labels_one_hot[0])
+
+from keras.models import Sequential
+from keras.layers import Dense
+
+model = Sequential()
+model.add(Dense(512, activation='relu', input_shape=(np.prod(teste.shape),)))
+model.add(Dense(512, activation='relu'))
+model.add(Dense(nClasses, activation='softmax'))
+
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+history = model.fit(data_train, train_labels_one_hot, batch_size=256, epochs=20, verbose=1, 
+                   validation_data=(data_test, test_labels_one_hot))
+
+plt.figure(figsize=[8,6])
+plt.plot(history.history['loss'],'r',linewidth=3.0)
+plt.plot(history.history['val_loss'],'b',linewidth=3.0)
+plt.legend(['Training loss', 'Validation Loss'],fontsize=18)
+plt.xlabel('Epochs ',fontsize=16)
+plt.ylabel('Loss',fontsize=16)
+plt.title('Loss Curves',fontsize=16)
+plt.show()
+
+plt.figure(figsize=[8,6])
+plt.plot(history.history['acc'],'r',linewidth=3.0)
+plt.plot(history.history['val_acc'],'b',linewidth=3.0)
+plt.legend(['Training Accuracy', 'Validation Accuracy'],fontsize=18)
+plt.xlabel('Epochs ',fontsize=16)
+plt.ylabel('Accuracy',fontsize=16)
+plt.title('Accuracy Curves',fontsize=16)
+plt.show()
+
+[test_loss, test_acc] = model.evaluate(data_test, test_labels_one_hot)
+print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_loss, test_acc))
 
 
 
