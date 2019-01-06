@@ -104,5 +104,6 @@ plt.show()
 [test_loss, test_acc] = model.evaluate(data_test, test_labels_one_hot)
 print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_loss, test_acc))
 
-
+# Predict the most likely class
+print(model.predict_classes(data_test[[0],:]))
 
