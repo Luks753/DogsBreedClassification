@@ -68,6 +68,7 @@ class preProcess():
 
 if __name__ == "__main__":
     
+    #FAZENDO TESTE USANDO A REDE PRONTA DO ARQUIVO MLPagain
     data_train = np.loadtxt('basetreino.txt', dtype=int, delimiter=',')
     data_test = np.loadtxt('baseteste.txt', dtype=int, delimiter=',')
     data_train_labels = np.loadtxt('labels_basetreino.txt', dtype=int, delimiter='\n')
