@@ -10,10 +10,11 @@ import MLPagain
     
 
 class MLP():
-    def __init__(self, size_layers, act_funct='sigmoid', reg_lambda=0, bias_flag=True):
+    def __init__(self, size_layers, learning_rate, reg_lambda=0, bias_flag=True):
         self.size_layers = size_layers
         self.n_layers    = len(size_layers)
-        self.act_f       = act_funct
+        self.l_rate      = learning_rate
+        self.act_f       = 'sigmoid'
         self.lambda_r    = reg_lambda
         self.bias_flag   = bias_flag
  
@@ -23,20 +24,76 @@ class MLP():
         self.weights = []
         size_next_layers = self.size_layers.copy()
         size_next_layers.pop(0)
-        for size_layer, size_next_layer in zip(self.size_layers, size_next_layers):
-            epsilon = 4.0 * np.sqrt(6) / np.sqrt(size_layer + size_next_layer)
-            if self.bias_flag:  
-                theta_tmp = epsilon * ( (np.random.rand(size_next_layer, size_layer + 1) * 2.0 ) - 1)
-            else:
-                theta_tmp = epsilon * ( (np.random.rand(size_next_layer, size_layer) * 2.0 ) - 1)                              
-            self.weights.append(theta_tmp)
-        print(self.weights)
+        for size_layer in self.size_layers:
+            for neuron in size_layer:
+                neuron_weights = []
+                for size_next_layer in size_next_layers:
+                    for next_neuron in size_next_layer:
+                        if self.bias:  
+                            neuron_weights = 2.0 * np.random.rand(next_neuron, neuron + 1) - 1
+                        else:
+                            neuron_weights = 2.0 * np.random.rand(next_neuron, neuron) - 1                             
+                self.weights.append(neuron_weights)
         return self.weights
         
     
-    
+    def train(self, X, Y, iterations=400, reset=False):
+        '''
+        Given X (feature matrix) and y (class vector)
+        Updates the Theta Weights by running Backpropagation N tines
+        Arguments:
+            X          : Feature matrix [n_examples, n_features]
+            Y          : Sparse class matrix [n_examples, classes]
+            iterations : Number of times Backpropagation is performed
+                default = 400
+            reset      : If set, initialize Theta Weights before training
+                default = False
+        '''
+        n_examples = Y.shape[0]
+#        self.labels = np.unique(y)
+#        Y = np.zeros((n_examples, len(self.labels)))
+#        for ix_label in range(len(self.labels)):
+#            # Find examples with with a Label = lables(ix_label)
+#           ix_tmp = np.where(y == self.labels[ix_label])[0]
+#            Y[ix_tmp, ix_label] = 1
+
+        if reset:
+            self.initialize_weights()
+        for iteration in range(iterations):
+            self.gradients = self.backpropagation(X, Y) 
+            self.gradients_vector = self.unroll_weights(self.gradients)
+            self.theta_vector = self.unroll_weights(self.theta_weights)
+            self.theta_vector = self.theta_vector - self.gradients_vector
+            self.theta_weights = self.roll_weights(self.theta_vector)
+
+    def backpropagation(self, X, Y):
+
+        n_examples = X.shape[0]
+        # Feedforward
+        A, Z = self.feedforward(X)
+
     def logistic_function(self,x):
         return .5 * (1 + np.tanh(.5 * x))
+
+''' def update_weights(self, index, output, expected_output, neuron):
+        for i in neuron:
+            value = self.l_rate*(expected_output - output)*neuron[i]
+
+        self.weights[index] = self.weights[index] + value
+    '''
+
+    def feedforward(self, X):
+
+        for neuron in X:
+            sig = 0.0
+            for i in neuron.shape[0]:
+                for p in self.weights[i]:
+                    sig = sig + neuron[i] * p[p]
+                
+
+
+
+
         
     
     
