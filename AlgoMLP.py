@@ -171,7 +171,7 @@ if __name__ == "__main__":
 '''
     data_train = np.loadtxt('basetreinoAV.txt', dtype=int, delimiter=',')
     data_test = np.loadtxt('basetesteAV.txt', dtype=int, delimiter=',')
-    data_train_labels = np.loadtxt('labels_basetreino.txt', dtype=int, delimiter='\n')
+    data_train_labels = np.loadtxt('labels_basetreinoAV.txt', dtype=int, delimiter='\n')
     data_test_labels = np.loadtxt('labels_basetesteAV.txt', dtype=int, delimiter='\n')
     
     print('Training data shape : ', data_train.shape, data_train_labels.shape)
