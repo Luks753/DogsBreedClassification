@@ -6,34 +6,33 @@ from keras.utils import to_categorical
 from PIL import Image
 import cv2
 import MLPagain
+
      
     
 
 class MLP():
-    def __init__(self, size_layers, learning_rate, reg_lambda=0, bias_flag=True):
+    def __init__(self, size_layers, learning_rate=0.2, reg_lambda=0, bias_flag=True):
         self.size_layers = size_layers
         self.n_layers    = len(size_layers)
         self.l_rate      = learning_rate
         self.act_f       = 'sigmoid'
         self.lambda_r    = reg_lambda
-        self.bias_flag   = bias_flag
+        self.bias   = bias_flag
  
         self.initialize_weights()
+        print(self.weights)
         
     def initialize_weights(self):
         self.weights = []
         size_next_layers = self.size_layers.copy()
         size_next_layers.pop(0)
-        for size_layer in self.size_layers:
-            for neuron in size_layer:
-                neuron_weights = []
-                for size_next_layer in size_next_layers:
-                    for next_neuron in size_next_layer:
-                        if self.bias:  
-                            neuron_weights = 2.0 * np.random.rand(next_neuron, neuron + 1) - 1
-                        else:
-                            neuron_weights = 2.0 * np.random.rand(next_neuron, neuron) - 1                             
-                self.weights.append(neuron_weights)
+    
+        for size_layer, size_next_layer in zip(self.size_layers, size_next_layers):
+            if self.bias:  
+                neuron_weights = 2.0 * np.random.rand(size_next_layer, size_layer + 1) - 1
+            else:
+                neuron_weights = 2.0 * np.random.rand(size_next_layer, size_layer) - 1                            
+            self.weights.append(neuron_weights) 
         return self.weights
         
     
@@ -66,35 +65,67 @@ class MLP():
             self.theta_vector = self.theta_vector - self.gradients_vector
             self.theta_weights = self.roll_weights(self.theta_vector)
 
-    def backpropagation(self, X, Y):
+    def train(self, X, Y):
 
         n_examples = X.shape[0]
+        inputs = []
+        outputs = []
+        Z = []
+        C = []
         # Feedforward
-        A, Z = self.feedforward(X)
+        print(self.n_layers)
+        # PASSA AS IMAGENS UMA POR UMA
+        for neuron in X:
+            print(neuron)
+            inputs, Z = self.feedforward(neuron, self.weights)
+            if(Z < 0.5):
+                outputs.append(0)
+            else:
+                outputs.append(1)
+                
+            print("A: ", inputs)
+            print("Z: ",Z)                
+        print(outputs)
+        
+        
+
+            
 
     def logistic_function(self,x):
         return .5 * (1 + np.tanh(.5 * x))
 
-''' def update_weights(self, index, output, expected_output, neuron):
+
+    def update_weights(self, index, output, expected_output, neuron):
         for i in neuron:
             value = self.l_rate*(expected_output - output)*neuron[i]
-
         self.weights[index] = self.weights[index] + value
-    '''
 
-    def feedforward(self, X):
 
-        for neuron in X:
-            sig = 0.0
-            for i in neuron.shape[0]:
-                for p in self.weights[i]:
-                    sig = sig + neuron[i] * p[p]
+    def feedforward(self, X, weights):
+        new_input=[]
+        f = lambda x: self.logistic_function(x)
+        
+        for n in range(self.n_layers-1):
+            W = weights[n]
+            for i in range(W.shape[0]):
+                value = 0
+                for j in range(np.prod(X.shape)):
+                    value = value + X[j]*W[i][j]
+                value = f(value)
+                new_input.append(value)
+            X=np.asarray(new_input)
+        return new_input, X[j+1]
+
+            
+
+                    
                 
 
 
 
 
         
+    
     
     
 class preProcess():
@@ -118,24 +149,47 @@ class preProcess():
         i = 1
         for image_path in sorted(glob.glob(r""+path+"")):
             tm = Image.open(image_path).convert('LA')
-            tm = tm.resize((32,32))
+            tm = tm.resize((50,50))
             name = os.path.dirname(image_path)
             tm.save(name+str(i)+'.png')
             i = i+1
 
 if __name__ == "__main__":
     
-    #FAZENDO TESTE USANDO A REDE PRONTA DO ARQUIVO MLPagain
+    '''
+    pr = preProcess()
+    pr.modifyimg("F:\Teste 2\*\*.jpg")
+    I = pr.processimg("F:\Teste 2\*.png")
+    np.savetxt('pugsamoyedTESTE.txt', I.astype(int), fmt='%.0f',delimiter=',', newline='\n')
+
+    Dir2="nome"
+    i=-1
+    Labels = []
+    for imagepath in sorted(glob.glob(r"F:\Teste 2\*\*.jpg")):
+        Dir1 = os.path.dirname(imagepath)
+        if(Dir1 != Dir2):
+            Dir2 = os.path.dirname(imagepath)
+            i = i + 1
+            #fim do if
+        Labels.append(i)
+    #fim do for
+    
+    Im = np.asarray(Labels)
+    np.savetxt('labels_pugsamoyedTESTE.txt', Im.astype(int), fmt='%.0f',delimiter=',', newline='\n')#'''
+    
+    
+    
+    
     data_train = np.loadtxt('basetreino.txt', dtype=int, delimiter=',')
-    data_test = np.loadtxt('baseteste.txt', dtype=int, delimiter=',')
+    #data_test = np.loadtxt('baseteste.txt', dtype=int, delimiter=',')
     data_train_labels = np.loadtxt('labels_basetreino.txt', dtype=int, delimiter='\n')
-    data_test_labels = np.loadtxt('labels_baseteste.txt', dtype=int, delimiter='\n')
+    #data_test_labels = np.loadtxt('labels_baseteste.txt', dtype=int, delimiter='\n')
     
     print('Training data shape : ', data_train.shape, data_train_labels.shape)
      
-    print('Testing data shape : ', data_test.shape, data_test_labels.shape)
+    #print('Testing data shape : ', data_test.shape, data_test_labels.shape)
     
-    teste = data_train[0].reshape(32,32)
+    #teste = data_train[0].reshape(50,50)
     
     # Find the unique numbers from the train labels
     classes = np.unique(data_train_labels)
@@ -145,30 +199,31 @@ if __name__ == "__main__":
     
     n_examples = len(data_train_labels)
     
-    plt.figure(figsize=[10,5])
+    '''plt.figure(figsize=[10,5])
     
     # Display the first image in training data
     plt.subplot(121)
     plt.imshow(teste[:,:], cmap='gray')
-    plt.title("Ground Truth : {}".format(teste))
+    plt.title("Ground Truth : {}".format(teste))'''
     
     #plt.show()
     #'''
     
     # Change the labels from integer to categorical data
     train_labels_one_hot = to_categorical(data_train_labels)
-    test_labels_one_hot = to_categorical(data_test_labels)
+    #test_labels_one_hot = to_categorical(data_test_labels)
     
     # Display the change for category label using one-hot encoding
-    print('Original label 0 : ', data_train_labels[0])
-    print('After conversion to categorical ( one-hot ) : ', train_labels_one_hot)
+    print('Original label 0 : ', data_train)
+    print('After conversion to categorical ( one-hot ) : ', train_labels_one_hot[0])
         
-    mlp_classifier = MLPagain.Mlp(size_layers = [1024, 512, 5], 
+    mlp_classifier = MLP(size_layers = [1024, 512, 1], 
                                   reg_lambda  = 0,
-                                  bias_flag   = True)
+                                  bias_flag   = False)
     print(mlp_classifier)
-    
-    epochs = 10
+    mlp_classifier.train(data_train, train_labels_one_hot)
+    '''
+    epochs = 1000
     loss = np.zeros([epochs,1])
     
     for ix in range(epochs):
@@ -183,12 +238,13 @@ if __name__ == "__main__":
     plt.figure()
     ix = np.arange(epochs)
     plt.plot(ix, loss)
-    
+    plt.show()
     # Training Accuracy
     Y_hat = mlp_classifier.predict(data_train)
     y_tmp = np.argmax(Y_hat, axis=1)
     y_hat = classes[y_tmp]
     
+    print(y_hat)
     acc = np.mean(1 * (y_hat == data_train_labels))
     print('Training Accuracy: ' + str(acc*100))
     
@@ -199,7 +255,7 @@ if __name__ == "__main__":
     
     acc = np.mean(1 * (y_hat == data_test_labels))
     print(y_hat)
-    print('Testing Accuracy: ' + str(acc*100))
+    print('Testing Accuracy: ' + str(acc*100))'''
 
     
     
